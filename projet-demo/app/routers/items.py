@@ -18,14 +18,19 @@ def get_item(item_id: int = Path(ge=1)):
     return item
 
 
-@router.get("", status_code=200)
+@router.get("", response_model=list[ItemRead], status_code=200)
 def list_items(
-    skip: int = Query(default=0, ge=0),
-    limit: int = Query(default=20, ge=1, le=100),
-    q: str | None = None,
-    disponible: bool | None = None,
-):
-    return {"skip": skip, "limit": limit, "q": q, "disponible": disponible}
+    skip        : int = Query(default=0, ge=0),
+    limit       : int = Query(default=20, ge=1, le=100),
+    q           : str | None = None,
+    disponible  : bool | None = None,
+) -> list[ItemRead]:
+    items = list(FAKE_DB.values())
+    if q is not None:
+        items = [item for item in items if q.casefold() in item["titre"].casefold()]
+    if disponible is not None:
+        items = [item for item in items if item["disponible"] == disponible]
+    return items[skip : skip + limit]
 
 # ================ POST ================
 
